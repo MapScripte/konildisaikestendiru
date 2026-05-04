@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сәйкестендіру Ойыны: Оңайдан Қиынға</title>
+    <style>
+        :root {
+            --bg-color: #f0fdf4;
+            --primary-color: #22c55e;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-color);
+            user-select: none;
+        }
+
+        h1 {
+            color: #166534;
+            margin-bottom: 5px;
+            text-align: center;
+            font-size: 2.3rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .level-indicator {
+            font-size: 1.3rem;
+            color: #15803d;
+            margin-bottom: 20px;
+            font-weight: bold;
+            background: #dcfce7;
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 2px solid #bbf7d0;
+        }
+
+        .game-container {
+            display: grid;
+            gap: 12px;
+            max-width: 600px;
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        /* Деңгейлерге байланысты тордың өлшемі өзгереді */
+        .grid-easy {
+            grid-template-columns: repeat(2, 1fr);
+            max-width: 300px;
+        }
+
+        .grid-medium {
+            grid-template-columns: repeat(4, 1fr);
+            max-width: 500px;
+        }
+
+        .grid-hard {
+            grid-template-columns: repeat(4, 1fr);
+            max-width: 550px;
+        }
+
+        .card {
+            background-image: linear-gradient(135deg, #fef08a 10%, #facc15 100%);
+            aspect-ratio: 1;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.2rem;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #d1d5db, 0 12px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.1s, box-shadow 0.1s;
+            border: 4px solid #f3f4f6;
+        }
+
+        /* Қиын деңгейде карталар кішірек болады */
+        .grid-hard .card {
+            font-size: 2.6rem;
+            border-radius: 12px;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        .card:active {
+            transform: translateY(3px);
+            box-shadow: 0 4px 0 #d1d5db, 0 6px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card.flipped {
+            background-image: none;
+            background-color: #ffffff;
+            border-color: #86efac;
+            box-shadow: 0 6px 0 #bbf7d0, 0 10px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .card.matched {
+            background-color: #dcfce7;
+            border-color: #4ade80;
+            box-shadow: none;
+            cursor: default;
+            animation: match-bounce 0.5s ease;
+        }
+
+        @keyframes match-bounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.12); }
+            100% { transform: scale(1); }
+        }
+
+        .screen {
+            display: none;
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 420px;
+            width: 100%;
+            border: 5px solid #4ade80;
+            animation: pop-in 0.4s ease-out;
+        }
+
+        @keyframes pop-in {
+            0% { transform: scale(0.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .screen h2 {
+            color: #15803d;
+            font-size: 2.2rem;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .screen p {
+            font-size: 1.1rem;
+            color: #4b5563;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: #22c55e;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #16a34a;
+            transition: all 0.1s;
+        }
+
+        .btn:hover {
+            background-color: #16a34a;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #15803d;
+        }
+
+        @media (max-width: 480px) {
+            .card { font-size: 2.4rem; }
+            .grid-hard .card { font-size: 1.8rem; }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🧩 Көңілді Сәйкестендіру</h1>
+    <div class="level-indicator" id="level-title">Деңгей: Оңай</div>
+
+    <div class="game-container grid-easy" id="game-grid"></div>
+
+    <div class="screen" id="level-screen">
+        <h2 id="win-title">Тамаша! 🎉</h2>
+        <p id="win-text">Келесі деңгейге өтуге дайынсың ба?</p>
+        <button class="btn" id="next-btn" onclick="nextLevel()">Жалғастыру ➡️</button>
+    </div>
+
+    <script>
+        // Әр ойын сайын ауысып отыратын үлкен суреттер қоры
+        const allEmojis = [
+            '🦁', '🐯', '🐸', '🐼', '🦄', '🐝', '🍎', '🍓',
+            '🍕', '🚗', '🎈', '🎁', '🐶', '🐱', '🐧', '🦊',
+            '🐵', '🐮', '🐷', '🦖', '🐙', '🐬', '🍦', '🍩',
+            '🚀', '✈️', '⚽', '🎨', '🧩', '🎸', '🌈', '☀️'
+        ];
+
+        // Деңгейлердің сипаттамасы
+        const levels = [
+            { id: 1, name: "1-деңгей: Оңай", pairs: 2, className: "grid-easy" },
+            { id: 2, name: "2-деңгей: Орташа", pairs: 4, className: "grid-medium" },
+            { id: 3, name: "3-деңгей: Қиын", pairs: 8, className: "grid-hard" }
+        ];
+
+        let currentLevelIndex = 0;
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let isBoardLocked = false;
+
+        const grid = document.getElementById('game-grid');
+        const levelTitle = document.getElementById('level-title');
+        const levelScreen = document.getElementById('level-screen');
+        const winTitle = document.getElementById('win-title');
+        const winText = document.getElementById('win-text');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Массивті кездейсоқ араластыру
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Ойын қорынан кездейсоқ суреттерді таңдап алу
+        function getRandomEmojis(count) {
+            let shuffledPool = shuffle([...allEmojis]);
+            return shuffledPool.slice(0, count);
+        }
+
+        // Деңгейді бастау
+        function startLevel() {
+            const currentLevel = levels[currentLevelIndex];
+            
+            // Интерфейсті дайындау
+            levelTitle.textContent = currentLevel.name;
+            grid.style.display = 'grid';
+            grid.className = `game-container ${currentLevel.className}`;
+            levelScreen.style.display = 'none';
+            
+            flippedCards = [];
+            matchedPairs = 0;
+            isBoardLocked = false;
+
+            // Әр ойын сайын суреттер ауысады
+            const chosenEmojis = getRandomEmojis(currentLevel.pairs);
+            let levelCards = shuffle([...chosenEmojis, ...chosenEmojis]);
+
+            grid.innerHTML = '';
+            levelCards.forEach((emoji) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.value = emoji;
+                card.addEventListener('click', flipCard);
+                grid.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (isBoardLocked) return;
+            if (this.classList.contains('flipped') || this.classList.contains('matched')) return;
+
+            this.classList.add('flipped');
+            this.textContent = this.dataset.value;
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            isBoardLocked = true;
+            const [card1, card2] = flippedCards;
+
+            if (card1.dataset.value === card2.dataset.value) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                flippedCards = [];
+                isBoardLocked = false;
+
+                const currentLevel = levels[currentLevelIndex];
+                if (matchedPairs === currentLevel.pairs) {
+                    setTimeout(showWinScreen, 800);
+                }
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    card1.textContent = '';
+                    card2.textContent = '';
+                    flippedCards = [];
+                    isBoardLocked = false;
+                }, 1000);
+            }
+        }
+
+        // Деңгейді аяқтағанда шығатын экран
+        function showWinScreen() {
+            grid.style.display = 'none';
+            levelScreen.style.display = 'block';
+
+            if (currentLevelIndex < levels.length - 1) {
+                winTitle.textContent = "Жарайсың! 🎉";
+                winText.textContent = "Сен бұл деңгейді керемет аяқтадың!";
+                nextBtn.textContent = "Келесі деңгей ➡️";
+            } else {
+                winTitle.textContent = "Жеңіс! 🏆";
+                winText.textContent = "Сен барлық деңгейлерді өтіп, жеңімпаз атандың!";
+                nextBtn.textContent = "Басынан бастау 🔄";
+            }
+        }
+
+        // Түймені басқанда келесі деңгейге өту немесе басына қайту
+        function nextLevel() {
+            if (currentLevelIndex < levels.length - 1) {
+                currentLevelIndex++;
+            } else {
+                currentLevelIndex = 0; // Соңғы деңгейден кейін қайта басына оралады
+            }
+            startLevel();
+        }
+
+        // Ойынды жүктеу
+        startLevel();
+    </script>
+</body>
+</html>
